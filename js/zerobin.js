@@ -381,8 +381,8 @@ function stateNewPaste() {
     $('div#language').hide(); // $('#language').show();
     $('input#password').hide(); //$('#password').show();
 	$('input#vcode').show();
-    $('div#opendisc').show();
-    $('button#newbutton').show();
+    $('div#opendisc').hide();
+    $('button#newbutton').hide();
     $('div#pastelink').hide();
     $('textarea#message').text('');
     $('textarea#message').show();
@@ -408,7 +408,7 @@ function stateExistingPaste() {
     $('div#language').hide();
     $('input#password').hide();
     $('div#opendisc').hide();
-    $('button#newbutton').show();
+    $('button#newbutton').hide();
     $('div#pastelink').hide();
     $('textarea#message').hide();
     $('div#cleartext').show();
