@@ -269,16 +269,118 @@ function send_data() {
         });
 }
 
+// Den Wahlzettel senden
+function send_ballot()
+{
+    if ($('textarea#message').val().length==0) return; // Do not send if no data.
+    showStatus('Wahlzettel anonymisieren und speichern...',spin=true); 
+    var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8,0),0);
+    var cipherdata = zeroCipher(randomkey,$('textarea#message').val());
+	var expiration = "never";
+    var data_to_send =  { data:cipherdata,
+                          expire:expiration,
+                          opendiscussion:0
+                        }; 
+    $.post(scriptLocation(), data_to_send ,'json' )
+    .error( function() { showError('Data could not be sent (server error or not responding).'); } )
+    .success(function(data)
+             {
+                if (data.status==0) 
+                {
+                    var url=scriptLocation()+"?"+data.id+'#'+randomkey;
+					ballot_link = url;
+                    send_again(url);
+                }
+                else if (data.status==1) 
+                { 
+                    showError('Could not create paste: '+data.message); 
+                }
+                else
+                { 
+                    showError('Could not create paste.'); 
+                }
+             }
+    );
+}
+
+// Den Wahlzettel anonymisieren
+function send_again(data)
+{
+    var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8,0),0);
+    var cipherdata = zeroCipher(randomkey,data);
+	var expiration = "burn";
+    var data_to_send =  { data:cipherdata,
+                          expire:expiration,
+                          opendiscussion:0
+                        }; 
+    $.post(scriptLocation(), data_to_send ,'json' )
+    .error( function() { showError('Data could not be sent (server error or not responding).'); } )
+    .success(function(data)
+             {
+                if (data.status==0) 
+                {
+                    var url=scriptLocation()+"?"+data.id+'#'+randomkey; 
+                    send_withVc(url + "\n\n" + $('input#vcode').val());
+                }
+                else if (data.status==1) 
+                { 
+                    showError('Could not create paste: '+data.message); 
+                }
+                else
+                { 
+                    showError('Could not create paste.'); 
+                }
+             }
+    );
+}
+
+// Den Wahlzettel mit VC versehen
+function send_withVc(data)
+{
+    var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8,0),0);
+    var cipherdata = zeroCipher(randomkey,data);
+	var expiration = "burn";
+    var data_to_send =  { data:cipherdata,
+                          expire:expiration,
+                          opendiscussion:0
+                        }; 
+    $.post(scriptLocation(), data_to_send ,'json' )
+    .error( function() { showError('Data could not be sent (server error or not responding).'); } )
+    .success(function(data)
+             {
+                if (data.status==0) 
+                {
+                    stateExistingPaste();
+                    var url=scriptLocation()+"?"+data.id+'#'+randomkey; 
+                    showStatus('');
+                    $('div#pastelink').html(url+'<br /><br /><a href="mailto:akkreditierung@piraten-bremerhaven.de?subject=Akkreditierung%20pr&uuml;fen&amp;body='+url+'">Link an Akkreditierungsstelle senden</a><br /><br /><br />Link zu deinem Wahlzettel: <a href="'+ballot_link+'">'+ballot_link+'</a><br />Diesen Link f&uuml;r eine pers&ouml;nliche &Uuml;berpr&uuml;fungsm&ouml;glichkeit deiner Stimmenz&auml;hlung aufbewahren (Bookmark)!').show();
+                    //setElementText($('div#cleartext'),$('textarea#message').val() + "\n\nWahlzettel-Link: " + ballot_link);
+                    urls2links($('div#cleartext')); 
+                    showStatus('');
+                }
+                else if (data.status==1) 
+                { 
+                    showError('Could not create paste: '+data.message); 
+                }
+                else
+                { 
+                    showError('Could not create paste.'); 
+                }
+             }
+    );
+}
+
 /**
  * Put the screen in "New paste" mode.
  */
 function stateNewPaste() {
     $('button#sendbutton').show();
     $('button#clonebutton').hide();
-    $('div#expiration').show();
+    $('div#expiration').hide();
     $('div#remainingtime').hide();
     $('div#language').hide(); // $('#language').show();
     $('input#password').hide(); //$('#password').show();
+	$('input#vcode').show();
     $('div#opendisc').show();
     $('button#newbutton').show();
     $('div#pastelink').hide();
@@ -293,8 +395,6 @@ function stateNewPaste() {
  * Put the screen in "Existing paste" mode.
  */
 function stateExistingPaste() {
-    $('button#sendbutton').hide();
-
     // No "clone" for IE<10.
     if ($('div#oldienotice').is(":visible")) {
         $('button#clonebutton').hide();
@@ -303,6 +403,7 @@ function stateExistingPaste() {
         $('button#clonebutton').show();
     }
 
+	$('input#vcode').hide();
     $('div#expiration').hide();
     $('div#language').hide();
     $('input#password').hide();
