@@ -1,5 +1,6 @@
-ZeroBin 0.15 Alpha
-=== THIS IS ALPHA SOFTWARE - USE AT YOUR OWN RISKS ====
+OLAV - [O]n[L]ine [A]bstimmungs[V]erfahren
+basierend auf
+ZeroBin
 
 ZeroBin is a minimalist, opensource online pastebin where the server 
 has zero knowledge of pasted data. Data is encrypted/decrypted in the 
